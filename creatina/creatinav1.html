@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Creatina Web</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      background-color: #1e293b;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    p { color: #94a3b8; font-size: 0.95rem; }
+    .user-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+    .user-info img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+    .status-box {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .taken { background-color: #065f46; color: #34d399; }
+    .not-taken { background-color: #7f1d1d; color: #fca5a5; }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: #1d4ed8; }
+    .btn-google {
+      background-color: #ffffff;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 1rem;
+    }
+    .btn-google:hover { background-color: #e2e8f0; }
+    .btn-logout {
+      background-color: transparent;
+      color: #94a3b8;
+      border: 1px solid #475569;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      padding: 0.4rem;
+    }
+    .btn-logout:hover { background-color: #334155; color: white; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Creatina Diaria 🧪</h1>
+    <p id="current-date"></p>
+
+    <!-- Vista sin autenticar -->
+    <div id="logged-out-view">
+      <p>Inicia sesión para registrar tu dosis diaria en la nube.</p>
+      <button class="btn-google" onclick="loginWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Iniciar sesión con Google
+      </button>
+    </div>
+
+    <!-- Vista de usuario autenticado -->
+    <div id="logged-in-view" class="hidden">
+      <div class="user-info">
+        <img id="user-photo" src="" alt="Avatar">
+        <span id="user-name"></span>
+      </div>
+
+      <div id="status" class="status-box not-taken">
+        Cargando estado...
+      </div>
+
+      <button id="action-btn" onclick="toggleCreatine()">Registrar Creatina</button>
+      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- Scripts de Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Tu configuración real de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAcVPsoEnDZq36Que9wq8AroGKTDKyC5g8",
+      authDomain: "control-creatina.firebaseapp.com",
+      projectId: "control-creatina",
+      storageBucket: "control-creatina.firebasestorage.app",
+      messagingSenderId: "435292913904",
+      appId: "1:435292913904:web:e291c61870c9c211b24235",
+      measurementId: "G-81DW8PMMPX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Mostrar fecha
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', dateOptions);
+
+    // Escuchar el estado de la autenticación
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('logged-out-view').classList.add('hidden');
+        document.getElementById('logged-in-view').classList.remove('hidden');
+        document.getElementById('user-photo').src = user.photoURL;
+        document.getElementById('user-name').innerText = user.displayName;
+
+        // Auto-registrar si viene desde el tag NFC (?auto=true)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+          await registerCreatine(true);
+        } else {
+          await checkStatus();
+        }
+      } else {
+        currentUser = null;
+        document.getElementById('logged-out-view').classList.remove('hidden');
+        document.getElementById('logged-in-view').classList.add('hidden');
+      }
+    });
+
+    // Iniciar Sesión con Google
+    window.loginWithGoogle = async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+      }
+    };
+
+    // Cerrar Sesión
+    window.logout = () => signOut(auth);
+
+    // Consultar estado de la dosis
+    async function checkStatus() {
+      if (!currentUser) return;
+      const docRef = doc(db, "users", currentUser.uid, "creatine_logs", today);
+      const docSnap = await getDoc(docRef);
+
+      const statusDiv = document.getElementById('status');
+      const btn = document.getElementById('action-btn');
+
+      if (docSnap.exists()) {
+        statusDiv.className = 'status-box taken';
+        statusDiv.innerText = '¡Tomada hoy! ✅';
+        btn.innerText = 'Desmarcar dosis';
+      } else {
+        statusDiv.className = 'status-box not-taken';
+        statusDiv.innerText = 'Pendiente por tomar ❌';
+        btn.innerText = 'Marcar como tomada';
+      }
+    }
+
+    // Registrar o desmarcar dosis
+    async function registerCreatine(forceRegister = false) {
+      if (!currentUser) return;
+      const docRef = doc(db, "users", currentUser.uid, "creatine_logs", today);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists() && !forceRegister) {
+        await deleteDoc(docRef);
+      } else {
+        await setDoc(docRef, {
+          timestamp: new Date().toISOString(),
+          date: today
+        });
+      }
+      checkStatus();
+    }
+
+    window.toggleCreatine = () => registerCreatine();
+  </script>
+</body>
+</html>
