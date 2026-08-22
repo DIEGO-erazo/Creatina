@@ -122,8 +122,19 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Reutilizando la inicialización original
-    const app = initializeApp();
+    // Tus llaves reales de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAcVPsoEnDZq36Que9wq8AroGKTDKeC5g8",
+      authDomain: "control-creatina.firebaseapp.com",
+      projectId: "control-creatina",
+      storageBucket: "control-creatina.firebasestorage.app",
+      messagingSenderId: "435292913904",
+      appId: "1:435292913904:web:e291c61870c9c211b24235",
+      measurementId: "G-81DW8PMMPX"
+    };
+
+    // Firebase Setup
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
