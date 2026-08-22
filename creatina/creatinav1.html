@@ -3,223 +3,361 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Creatina Web</title>
+  <title>Creatina Diaria - NFC Tracker</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #0f172a;
-      color: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
     }
-    .card {
-      background-color: #1e293b;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      text-align: center;
-      max-width: 380px;
-      width: 100%;
-    }
-    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    p { color: #94a3b8; font-size: 0.95rem; }
-    .user-info {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-    }
-    .user-info img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-    }
-    .status-box {
-      margin: 1.5rem 0;
-      padding: 1rem;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-    .taken { background-color: #065f46; color: #34d399; }
-    .not-taken { background-color: #7f1d1d; color: #fca5a5; }
-    button {
-      background-color: #2563eb;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.2s;
-    }
-    button:hover { background-color: #1d4ed8; }
-    .btn-google {
-      background-color: #ffffff;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 1rem;
-    }
-    .btn-google:hover { background-color: #e2e8f0; }
-    .btn-logout {
-      background-color: transparent;
-      color: #94a3b8;
-      border: 1px solid #475569;
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      padding: 0.4rem;
-    }
-    .btn-logout:hover { background-color: #334155; color: white; }
-    .hidden { display: none; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1rem; }
+    
+    .container { background: var(--card-bg); width: 100%; max-width: 480px; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); text-align: center; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
+    .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; }
+    
+    .user-badge { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted); }
+    .user-badge img { width: 28px; height: 28px; border-radius: 50%; }
+
+    .status-card { padding: 1rem; border-radius: 0.75rem; font-weight: 600; margin-bottom: 1.2rem; transition: all 0.3s ease; }
+    .status-card.pending { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status-card.completed { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .btn { width: 100%; padding: 0.8rem; border: none; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; background: var(--accent); color: white; margin-bottom: 0.6rem; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+    /* Dashboard Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin: 1.2rem 0; }
+    .stat-box { background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.05); }
+    .stat-number { font-size: 1.2rem; font-weight: bold; color: var(--text); }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* Calendar UI */
+    .calendar-container { margin-top: 1.2rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 0.75rem; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .calendar-header button { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; padding: 0 0.5rem; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; text-align: center; }
+    .day-name { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; padding-bottom: 0.3rem; }
+    .day-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border-radius: 0.3rem; background: rgba(255,255,255,0.02); }
+    .day-cell.taken { background: var(--success); color: #042f2e; font-weight: bold; }
+    .day-cell.missed { background: var(--danger); color: white; opacity: 0.8; }
+    .day-cell.empty { background: transparent; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="card">
+  <div class="container">
     <h1>Creatina Diaria 🧪</h1>
-    <p id="current-date"></p>
+    <p class="subtitle" id="current-date">Cargando fecha...</p>
 
-    <!-- Vista sin autenticar -->
-    <div id="logged-out-view">
-      <p>Inicia sesión para registrar tu dosis diaria en la nube.</p>
-      <button class="btn-google" onclick="loginWithGoogle()">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Iniciar sesión con Google
-      </button>
+    <!-- Login View -->
+    <div id="login-section">
+      <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Inicia sesión para gestionar tus dosis e historial.</p>
+      <button class="btn" id="login-btn">Iniciar Sesión con Google</button>
     </div>
 
-    <!-- Vista de usuario autenticado -->
-    <div id="logged-in-view" class="hidden">
-      <div class="user-info">
-        <img id="user-photo" src="" alt="Avatar">
+    <!-- App View -->
+    <div id="app-section" class="hidden">
+      <div class="user-badge">
+        <img id="user-avatar" src="" alt="Avatar">
         <span id="user-name"></span>
       </div>
 
-      <div id="status" class="status-box not-taken">
+      <div id="status-card" class="status-card pending">
         Cargando estado...
       </div>
 
-      <button id="action-btn" onclick="toggleCreatine()">Registrar Creatina</button>
-      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+      <button class="btn" id="toggle-btn">Registrar Creatina Hoy</button>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-number" id="stat-first-date">--/--</div>
+          <div class="stat-label">Primera toma</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="stat-streak">0 🔥</div>
+          <div class="stat-label">Racha actual</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="stat-taken" style="color: var(--success)">0</div>
+          <div class="stat-label">Días tomados</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="stat-missed" style="color: var(--danger)">0</div>
+          <div class="stat-label">Días no tomados</div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button id="prev-month">&lt;</button>
+          <span id="calendar-month-year" style="font-weight: 600; font-size: 0.9rem;"></span>
+          <button id="next-month">&gt;</button>
+        </div>
+        <div class="calendar-grid" id="calendar-days">
+          <!-- Calendar populated by JS -->
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="logout-btn" style="margin-top: 1.2rem;">Cerrar sesión</button>
     </div>
   </div>
 
-  <!-- Scripts de Firebase -->
+  <!-- Firebase Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Tu configuración real de Firebase
+    // Reemplaza esto con tu Firebase Config si fuera necesario
     const firebaseConfig = {
-      apiKey: "AIzaSyAcVPsoEnDZq36Que9wq8AroGKTDKyC5g8",
-      authDomain: "control-creatina.firebaseapp.com",
-      projectId: "control-creatina",
-      storageBucket: "control-creatina.firebasestorage.app",
-      messagingSenderId: "435292913904",
-      appId: "1:435292913904:web:e291c61870c9c211b24235",
-      measurementId: "G-81DW8PMMPX"
+      apiKey: "AIzaSy...", 
+      authDomain: "diego-erazo.firebaseapp.com",
+      projectId: "diego-erazo",
+      storageBucket: "diego-erazo.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc"
     };
 
+    // Firebase Setup
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     let currentUser = null;
-    const today = new Date().toISOString().split('T')[0];
+    let userLogs = new Set();
+    let currentDisplayDate = new Date();
 
-    // Mostrar fecha
-    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', dateOptions);
+    // DOM Elements
+    const loginSection = document.getElementById('login-section');
+    const appSection = document.getElementById('app-section');
+    const statusCard = document.getElementById('status-card');
+    const toggleBtn = document.getElementById('toggle-btn');
 
-    // Escuchar el estado de la autenticación
+    // Display Current Date
+    document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Format Date Helper YYYY-MM-DD
+    const formatDateKey = (d) => d.toISOString().split('T')[0];
+
+    // Auth Listeners
+    document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('logout-btn').onclick = () => signOut(auth);
+
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
-        document.getElementById('logged-out-view').classList.add('hidden');
-        document.getElementById('logged-in-view').classList.remove('hidden');
-        document.getElementById('user-photo').src = user.photoURL;
+        document.getElementById('user-avatar').src = user.photoURL || '';
         document.getElementById('user-name').innerText = user.displayName;
+        loginSection.classList.add('hidden');
+        appSection.classList.remove('hidden');
 
-        // Auto-registrar si viene desde el tag NFC (?auto=true)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('auto') === 'true') {
-          await registerCreatine(true);
-        } else {
-          await checkStatus();
-        }
+        await loadUserLogs();
+        checkAutoLog();
       } else {
         currentUser = null;
-        document.getElementById('logged-out-view').classList.remove('hidden');
-        document.getElementById('logged-in-view').classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        appSection.classList.add('hidden');
       }
     });
 
-    // Iniciar Sesión con Google
-    window.loginWithGoogle = async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        console.error("Error al iniciar sesión:", error);
+    // Auto Log URL query handling (?auto=true)
+    async function checkAutoLog() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('auto') === 'true') {
+        const todayKey = formatDateKey(new Date());
+        if (!userLogs.has(todayKey)) {
+          await toggleCreatineLog(todayKey, true);
+        }
       }
+    }
+
+    // Firestore Sync
+    async function loadUserLogs() {
+      if (!currentUser) return;
+      const docRef = doc(db, "creatine_users", currentUser.uid);
+      const docSnap = await getDoc(docRef);
+
+      userLogs.clear();
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.logs) {
+          data.logs.forEach(dateStr => userLogs.add(dateStr));
+        }
+      }
+
+      updateUI();
+    }
+
+    async function toggleCreatineLog(dateKey, forceValue = null) {
+      if (!currentUser) return;
+      const shouldAdd = forceValue !== null ? forceValue : !userLogs.has(dateKey);
+
+      if (shouldAdd) {
+        userLogs.add(dateKey);
+      } else {
+        userLogs.delete(dateKey);
+      }
+
+      const docRef = doc(db, "creatine_users", currentUser.uid);
+      await setDoc(docRef, { logs: Array.from(userLogs) }, { merge: true });
+
+      updateUI();
+    }
+
+    toggleBtn.onclick = () => {
+      const todayKey = formatDateKey(new Date());
+      toggleCreatineLog(todayKey);
     };
 
-    // Cerrar Sesión
-    window.logout = () => signOut(auth);
+    // UI Updates
+    function updateUI() {
+      const todayKey = formatDateKey(new Date());
+      const hasTakenToday = userLogs.has(todayKey);
 
-    // Consultar estado de la dosis
-    async function checkStatus() {
-      if (!currentUser) return;
-      const docRef = doc(db, "users", currentUser.uid, "creatine_logs", today);
-      const docSnap = await getDoc(docRef);
-
-      const statusDiv = document.getElementById('status');
-      const btn = document.getElementById('action-btn');
-
-      if (docSnap.exists()) {
-        statusDiv.className = 'status-box taken';
-        statusDiv.innerText = '¡Tomada hoy! ✅';
-        btn.innerText = 'Desmarcar dosis';
+      // Main Status Card
+      if (hasTakenToday) {
+        statusCard.className = "status-card completed";
+        statusCard.innerText = "¡Creatina de hoy registrada! 💊";
+        toggleBtn.innerText = "Marcar como no tomada";
       } else {
-        statusDiv.className = 'status-box not-taken';
-        statusDiv.innerText = 'Pendiente por tomar ❌';
-        btn.innerText = 'Marcar como tomada';
+        statusCard.className = "status-card pending";
+        statusCard.innerText = "Pendiente por tomar hoy ⏳";
+        toggleBtn.innerText = "Registrar Creatina Hoy";
+      }
+
+      calculateStats();
+      renderCalendar();
+    }
+
+    function calculateStats() {
+      if (userLogs.size === 0) {
+        document.getElementById('stat-first-date').innerText = "--/--";
+        document.getElementById('stat-taken').innerText = "0";
+        document.getElementById('stat-missed').innerText = "0";
+        document.getElementById('stat-streak').innerText = "0 🔥";
+        return;
+      }
+
+      const sortedDates = Array.from(userLogs).sort();
+      const firstDate = new Date(sortedDates[0]);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // First Date display
+      document.getElementById('stat-first-date').innerText = firstDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+
+      // Calculate Total Days elapsed
+      const timeDiff = Math.max(0, today - firstDate);
+      const totalDaysElapsed = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+      const takenCount = userLogs.size;
+      const missedCount = Math.max(0, totalDaysElapsed - takenCount);
+
+      document.getElementById('stat-taken').innerText = takenCount;
+      document.getElementById('stat-missed').innerText = missedCount;
+
+      // Calculate Streak
+      let streak = 0;
+      let checkDate = new Date();
+      checkDate.setHours(0,0,0,0);
+
+      while (true) {
+        const key = formatDateKey(checkDate);
+        if (userLogs.has(key)) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          // If today isn't taken yet, still check yesterday before breaking streak
+          if (formatDateKey(checkDate) === formatDateKey(new Date())) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            continue;
+          }
+          break;
+        }
+      }
+
+      document.getElementById('stat-streak').innerText = `${streak} 🔥`;
+    }
+
+    // Calendar Renderer
+    function renderCalendar() {
+      const daysContainer = document.getElementById('calendar-days');
+      daysContainer.innerHTML = '';
+
+      const year = currentDisplayDate.getFullYear();
+      const month = currentDisplayDate.getMonth();
+
+      document.getElementById('calendar-month-year').innerText = new Date(year, month).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
+
+      // Day Names Header
+      const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      dayNames.forEach(name => {
+        const div = document.createElement('div');
+        div.className = 'day-name';
+        div.innerText = name;
+        daysContainer.appendChild(div);
+      });
+
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // Empty slots before month start
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'day-cell empty';
+        daysContainer.appendChild(emptyCell);
+      }
+
+      // Fill Month Days
+      const sortedDates = Array.from(userLogs).sort();
+      const firstEverDate = sortedDates.length > 0 ? new Date(sortedDates[0]) : null;
+      if (firstEverDate) firstEverDate.setHours(0,0,0,0);
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cellDate = new Date(year, month, day);
+        cellDate.setHours(0,0,0,0);
+        const dateKey = formatDateKey(cellDate);
+
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        cell.innerText = day;
+
+        if (userLogs.has(dateKey)) {
+          cell.classList.add('taken');
+        } else if (firstEverDate && cellDate >= firstEverDate && cellDate <= today) {
+          cell.classList.add('missed');
+        }
+
+        daysContainer.appendChild(cell);
       }
     }
 
-    // Registrar o desmarcar dosis
-    async function registerCreatine(forceRegister = false) {
-      if (!currentUser) return;
-      const docRef = doc(db, "users", currentUser.uid, "creatine_logs", today);
-      const docSnap = await getDoc(docRef);
+    // Calendar Month Navigation Controls
+    document.getElementById('prev-month').onclick = () => {
+      currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
+      renderCalendar();
+    };
 
-      if (docSnap.exists() && !forceRegister) {
-        await deleteDoc(docRef);
-      } else {
-        await setDoc(docRef, {
-          timestamp: new Date().toISOString(),
-          date: today
-        });
-      }
-      checkStatus();
-    }
-
-    window.toggleCreatine = () => registerCreatine();
+    document.getElementById('next-month').onclick = () => {
+      currentDisplayDate.setMonth(currentDisplayDate.getMonth() + 1);
+      renderCalendar();
+    };
   </script>
 </body>
 </html>
