@@ -120,20 +120,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Reemplaza esto con tu Firebase Config si fuera necesario
-    const firebaseConfig = {
-      apiKey: "AIzaSy...", 
-      authDomain: "diego-erazo.firebaseapp.com",
-      projectId: "diego-erazo",
-      storageBucket: "diego-erazo.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abc"
-    };
-
-    // Firebase Setup
-    const app = initializeApp(firebaseConfig);
+    // Reutilizando la inicialización original
+    const app = initializeApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
@@ -155,7 +145,9 @@
     const formatDateKey = (d) => d.toISOString().split('T')[0];
 
     // Auth Listeners
-    document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('login-btn').onclick = () => {
+      signInWithPopup(auth, provider).catch(err => console.error(err));
+    };
     document.getElementById('logout-btn').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, async (user) => {
@@ -189,15 +181,19 @@
     // Firestore Sync
     async function loadUserLogs() {
       if (!currentUser) return;
-      const docRef = doc(db, "creatine_users", currentUser.uid);
-      const docSnap = await getDoc(docRef);
+      try {
+        const docRef = doc(db, "creatine_users", currentUser.uid);
+        const docSnap = await getDoc(docRef);
 
-      userLogs.clear();
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.logs) {
-          data.logs.forEach(dateStr => userLogs.add(dateStr));
+        userLogs.clear();
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.logs) {
+            data.logs.forEach(dateStr => userLogs.add(dateStr));
+          }
         }
+      } catch(e) {
+        console.error("Error al cargar datos:", e);
       }
 
       updateUI();
@@ -213,8 +209,12 @@
         userLogs.delete(dateKey);
       }
 
-      const docRef = doc(db, "creatine_users", currentUser.uid);
-      await setDoc(docRef, { logs: Array.from(userLogs) }, { merge: true });
+      try {
+        const docRef = doc(db, "creatine_users", currentUser.uid);
+        await setDoc(docRef, { logs: Array.from(userLogs) }, { merge: true });
+      } catch(e) {
+        console.error("Error al guardar datos:", e);
+      }
 
       updateUI();
     }
@@ -281,7 +281,6 @@
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else {
-          // If today isn't taken yet, still check yesterday before breaking streak
           if (formatDateKey(checkDate) === formatDateKey(new Date())) {
             checkDate.setDate(checkDate.getDate() - 1);
             continue;
@@ -348,7 +347,7 @@
       }
     }
 
-    // Calendar Month Navigation Controls
+    // Calendar Controls
     document.getElementById('prev-month').onclick = () => {
       currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
       renderCalendar();
