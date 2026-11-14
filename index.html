@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creatina Diaria · NFC Tracker</title>
+  <meta name="description" content="Registra tu toma diaria de creatina acercando el teléfono a una etiqueta NFC. Racha, calendario e historial sincronizados con tu cuenta de Google.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/icono-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <main class="tarjeta">
+    <header class="cabecera">
+      <img src="img/icono.svg" alt="" width="44" height="44">
+      <div>
+        <h1>Creatina Diaria</h1>
+        <p class="sutil" id="fecha-hoy">&nbsp;</p>
+      </div>
+    </header>
+
+    <!-- Pantalla de inicio de sesión -->
+    <section id="vista-login" class="oculto" aria-labelledby="titulo-login">
+      <h2 id="titulo-login" class="visualmente-oculto">Iniciar sesión</h2>
+      <p class="aviso-nfc oculto" id="aviso-nfc-login">📲 Llegaste desde tu etiqueta NFC. Inicia sesión y la toma de hoy se registra sola.</p>
+      <p class="sutil">Registra tu creatina con un toque del teléfono y lleva tu racha, calendario e historial en cualquier dispositivo.</p>
+      <button class="boton" id="btn-login" type="button">
+        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        Iniciar sesión con Google
+      </button>
+      <button class="boton boton-secundario" id="btn-demo" type="button">Probar sin cuenta (demo)</button>
+    </section>
+
+    <!-- Aplicación -->
+    <section id="vista-app" class="oculto" aria-live="polite">
+      <div class="usuario">
+        <img id="usuario-foto" src="img/icono.svg" alt="" width="28" height="28" referrerpolicy="no-referrer">
+        <span id="usuario-nombre"></span>
+        <span class="etiqueta-demo oculto" id="etiqueta-demo">DEMO</span>
+      </div>
+
+      <div id="estado-hoy" class="estado pendiente" role="status">Cargando…</div>
+      <button class="boton" id="btn-hoy" type="button" disabled>Registrar creatina de hoy</button>
+
+      <div class="estadisticas">
+        <div class="dato"><span class="numero" id="dato-racha">0</span><span class="etiqueta">Racha actual 🔥</span></div>
+        <div class="dato"><span class="numero" id="dato-mejor">0</span><span class="etiqueta">Mejor racha</span></div>
+        <div class="dato"><span class="numero" id="dato-cumplimiento">0%</span><span class="etiqueta">Cumplimiento</span></div>
+        <div class="dato"><span class="numero verde" id="dato-tomados">0</span><span class="etiqueta">Días tomados</span></div>
+        <div class="dato"><span class="numero rojo" id="dato-no-tomados">0</span><span class="etiqueta">Días no tomados</span></div>
+        <div class="dato"><span class="numero" id="dato-primera">--</span><span class="etiqueta">Primera toma</span></div>
+      </div>
+
+      <div class="calendario">
+        <div class="calendario-cabecera">
+          <button type="button" id="mes-anterior" aria-label="Mes anterior">‹</button>
+          <span id="mes-titulo"></span>
+          <button type="button" id="mes-siguiente" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="calendario-dias" id="calendario" role="grid"></div>
+        <p class="leyenda">
+          <span><i class="punto tomado"></i>Tomado</span>
+          <span><i class="punto no-tomado"></i>No tomado</span>
+          <span><i class="punto pendiente"></i>Hoy</span>
+        </p>
+        <p class="sutil pequeno">Toca un día pasado para corregirlo si se te olvidó registrarlo.</p>
+      </div>
+
+      <details class="nfc">
+        <summary>Configurar etiqueta NFC</summary>
+        <p class="sutil">Pega una etiqueta NFC en el bote de creatina. Al acercar el teléfono se abre esta página y la toma del día se registra sola.</p>
+        <button class="boton boton-secundario" id="btn-nfc" type="button">Grabar etiqueta NFC</button>
+        <p class="sutil pequeno" id="nfc-ayuda">Funciona en Chrome para Android. En iPhone u otros navegadores, graba este enlace en la etiqueta con una app como NFC Tools:</p>
+        <code id="enlace-nfc" class="enlace"></code>
+      </details>
+
+      <button class="boton boton-secundario" id="btn-salir" type="button">Cerrar sesión</button>
+    </section>
+  </main>
+
+  <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+  <footer class="pie">© 2026 Diego Erazo · <a href="https://github.com/DIEGO-erazo/Creatina">Código en GitHub</a></footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
