@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Reglas de seguridad de Firestore para "control-creatina".
+// Cada usuario solo puede leer y escribir su propio documento, y solo con una lista
+// de fechas 'AAAA-MM-DD'. Publicar en: Firebase Console > Firestore Database > Reglas.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /creatine_users/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['logs'])
+        && request.resource.data.logs is list
+        && request.resource.data.logs.size() <= 5000;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
