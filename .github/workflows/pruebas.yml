@@ -1,0 +1,22 @@
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Pruebas de la lógica (hora de El Salvador)
+        run: npm test
+        env:
+          TZ: America/El_Salvador
+      - name: Pruebas de la lógica (UTC)
+        run: npm test
+        env:
+          TZ: UTC
