@@ -1,7 +1,7 @@
 // Service worker: guarda la app para que abra rápido y sin internet.
 // Las páginas se piden primero a la red (para recibir siempre la última versión);
 // el resto de archivos sale de la caché y se actualiza en segundo plano.
-const VERSION = 'creatina-v2.0.0';
+const VERSION = 'creatina-v2.1.0';
 const ARCHIVOS = [
   './', './index.html', './css/estilos.css',
   './js/app.js', './js/almacen.js', './js/registro.js', './js/firebase-config.js',

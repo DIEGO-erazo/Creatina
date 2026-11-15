@@ -1,9 +1,9 @@
 // Interfaz: conecta la pantalla con el almacén de datos y la lógica de registro.
 import { alCambiarSesion, iniciarSesion, almacenFirebase, almacenDemo } from './almacen.js';
-import { claveDeFecha, fechaDeClave, calcularEstadisticas, celdasDelMes } from './registro.js';
+import { claveDeFecha, fechaDeClave, calcularEstadisticas, celdasDelMes, ultimosDias } from './registro.js';
 
 const $ = (id) => document.getElementById(id);
-const NOMBRES_DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const NOMBRES_DIAS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 const parametros = new URLSearchParams(location.search);
 // ?auto=true es el enlace que se graba en la etiqueta NFC (el mismo que usaba la v1).
@@ -15,13 +15,14 @@ let registros = new Set();
 let mesVisible = new Date();
 let ocupado = false;
 
-$('fecha-hoy').textContent = new Date().toLocaleDateString('es-ES', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-});
-$('enlace-nfc').textContent = ENLACE_NFC;
+const vibrar = (ms) => { try { navigator.vibrate?.(ms); } catch { /* sin vibración */ } };
+const mayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const fechaLarga = (clave) => fechaDeClave(clave).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+$('fecha-hoy').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 if (registroAutomaticoPendiente) $('aviso-nfc-login').classList.remove('oculto');
 
-// ---------------------------------------------------------------- avisos
+// ---------------------------------------------------------------- avisos y hoja de confirmación
 let temporizadorAviso;
 function avisar(texto, esError = false) {
   const aviso = $('aviso');
@@ -29,8 +30,42 @@ function avisar(texto, esError = false) {
   aviso.classList.toggle('error', esError);
   aviso.classList.add('visible');
   clearTimeout(temporizadorAviso);
-  temporizadorAviso = setTimeout(() => aviso.classList.remove('visible'), esError ? 5000 : 3000);
+  temporizadorAviso = setTimeout(() => aviso.classList.remove('visible'), esError ? 4500 : 2600);
 }
+
+function confirmar(titulo, texto, accion, peligro = false) {
+  const hoja = $('hoja');
+  if (typeof hoja.showModal !== 'function') return Promise.resolve(window.confirm(`${titulo}\n${texto}`));
+  $('hoja-titulo').textContent = titulo;
+  $('hoja-texto').textContent = texto;
+  $('hoja-si').textContent = accion;
+  $('hoja-si').classList.toggle('boton-peligro', peligro);
+  hoja.returnValue = '';
+  hoja.showModal();
+  return new Promise((resolver) => {
+    hoja.addEventListener('close', () => resolver(hoja.returnValue === 'si'), { once: true });
+  });
+}
+// Tocar fuera de la hoja la cierra.
+$('hoja').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close('no'); });
+
+// ---------------------------------------------------------------- pestañas
+function irA(nombre) {
+  for (const seccion of document.querySelectorAll('.pestana')) {
+    seccion.classList.toggle('oculto', seccion.id !== `pestana-${nombre}`);
+  }
+  for (const boton of document.querySelectorAll('.pestana-boton')) {
+    const activa = boton.dataset.pestana === nombre;
+    boton.classList.toggle('activa', activa);
+    if (activa) boton.setAttribute('aria-current', 'page'); else boton.removeAttribute('aria-current');
+  }
+  $('titulo-pestana').textContent = $(`pestana-${nombre}`).dataset.titulo;
+  window.scrollTo({ top: 0 });
+}
+for (const boton of document.querySelectorAll('.pestana-boton')) {
+  boton.addEventListener('click', () => irA(boton.dataset.pestana));
+}
+$('btn-avatar').addEventListener('click', () => irA('ajustes'));
 
 // ---------------------------------------------------------------- sesión
 function mostrarLogin() {
@@ -39,20 +74,24 @@ function mostrarLogin() {
   $('vista-login').classList.remove('oculto');
 }
 
-async function entrar(nuevoAlmacen, nombre, foto) {
+async function entrar(nuevoAlmacen, nombre, detalle, foto) {
   almacen = nuevoAlmacen;
+  const esDemo = almacen.tipo === 'demo';
   $('usuario-nombre').textContent = nombre;
+  $('usuario-detalle').textContent = detalle;
   $('usuario-foto').src = foto || 'img/icono.svg';
-  $('etiqueta-demo').classList.toggle('oculto', almacen.tipo !== 'demo');
-  $('btn-salir').textContent = almacen.tipo === 'demo' ? 'Salir del modo demo' : 'Cerrar sesión';
+  $('cuenta-foto').src = foto || 'img/icono.svg';
+  $('etiqueta-demo').classList.toggle('oculto', !esDemo);
+  $('btn-salir').textContent = esDemo ? 'Salir del modo demo' : 'Cerrar sesión';
   $('vista-login').classList.add('oculto');
   $('vista-app').classList.remove('oculto');
+  irA('hoy');
 
   try {
     registros = await almacen.cargar();
   } catch (e) {
     console.error('Error al cargar los registros:', e);
-    avisar('No se pudieron cargar tus registros. Revisa tu conexión.', true);
+    avisar('No se pudieron cargar tus registros', true);
   }
   $('btn-hoy').disabled = false;
   actualizar();
@@ -66,9 +105,9 @@ async function registrarDesdeNfc() {
   history.replaceState(null, '', location.pathname);
   const hoy = claveDeFecha(new Date());
   if (registros.has(hoy)) {
-    avisar('La creatina de hoy ya estaba registrada ✅');
+    avisar('Hoy ya estaba registrado');
   } else if (await marcar(hoy, true)) {
-    avisar('¡Registrada desde la etiqueta NFC! 💊');
+    avisar('Registrado desde la etiqueta NFC');
   }
 }
 
@@ -77,38 +116,42 @@ $('btn-login').addEventListener('click', async () => {
     await iniciarSesion();
   } catch (e) {
     console.error(e);
-    avisar(e.code === 'auth/unauthorized-domain'
-      ? 'Este dominio no está autorizado en Firebase Authentication.'
-      : 'No se pudo iniciar sesión. Inténtalo de nuevo.', true);
+    avisar(e.code === 'auth/unauthorized-domain' ? 'Dominio no autorizado en Firebase' : 'No se pudo iniciar sesión', true);
   }
 });
 
-$('btn-demo').addEventListener('click', () => entrar(almacenDemo(), 'Usuario de prueba', null));
+const entrarDemo = () => entrar(almacenDemo(), 'Usuario de prueba', 'Datos de ejemplo en este navegador', null);
+$('btn-demo').addEventListener('click', entrarDemo);
 
 $('btn-salir').addEventListener('click', async () => {
+  const esDemo = almacen?.tipo === 'demo';
+  const ok = await confirmar(esDemo ? '¿Salir del modo demo?' : '¿Cerrar sesión?',
+    esDemo ? 'Se borrarán los datos de ejemplo.' : 'Tus registros quedan guardados en tu cuenta.',
+    esDemo ? 'Salir' : 'Cerrar sesión', true);
+  if (!ok) return;
   await almacen?.salir();
-  if (almacen?.tipo === 'demo') mostrarLogin();
+  if (esDemo) mostrarLogin();
 });
 
 alCambiarSesion((usuario) => {
   if (usuario) {
-    entrar(almacenFirebase(usuario), usuario.displayName || usuario.email, usuario.photoURL);
+    entrar(almacenFirebase(usuario), usuario.displayName || 'Mi cuenta', usuario.email || 'Cuenta de Google', usuario.photoURL);
   } else if (!almacen || almacen.tipo !== 'demo') {
     mostrarLogin();
   }
 });
 
-if (parametros.has('demo')) entrar(almacenDemo(), 'Usuario de prueba', null);
+if (parametros.has('demo')) entrarDemo();
 
 // ---------------------------------------------------------------- registrar
 /** Cambia un día y lo guarda. Si falla, deshace el cambio en pantalla. */
 async function marcar(clave, tomado) {
   if (!almacen || ocupado) return false;
   ocupado = true;
-  $('btn-hoy').disabled = true;
   const antes = new Set(registros);
   if (tomado) registros.add(clave); else registros.delete(clave);
   actualizar();
+  if (tomado) vibrar(18);
   try {
     await almacen.marcar(clave, tomado);
     return true;
@@ -116,43 +159,63 @@ async function marcar(clave, tomado) {
     console.error('Error al guardar:', e);
     registros = antes;
     actualizar();
-    avisar('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.', true);
+    avisar('No se pudo guardar. Revisa tu conexión', true);
     return false;
   } finally {
     ocupado = false;
-    $('btn-hoy').disabled = false;
   }
 }
 
-$('btn-hoy').addEventListener('click', () => {
+$('btn-hoy').addEventListener('click', async () => {
   const hoy = claveDeFecha(new Date());
-  marcar(hoy, !registros.has(hoy));
+  if (!registros.has(hoy)) {
+    marcar(hoy, true);
+  } else if (await confirmar('¿Quitar el registro de hoy?', 'El día quedará como pendiente.', 'Quitar registro', true)) {
+    marcar(hoy, false);
+  }
 });
 
 // ---------------------------------------------------------------- pantalla
 function actualizar() {
   const e = calcularEstadisticas(registros);
-  const estado = $('estado-hoy');
-  estado.className = `estado ${e.tomadoHoy ? 'completado' : 'pendiente'}`;
-  estado.textContent = e.tomadoHoy ? '¡Creatina de hoy registrada! 💊' : 'Pendiente por tomar hoy ⏳';
-  $('btn-hoy').textContent = e.tomadoHoy ? 'Marcar hoy como no tomada' : 'Registrar creatina de hoy';
+
+  const anillo = $('btn-hoy');
+  anillo.classList.toggle('hecho', e.tomadoHoy);
+  anillo.setAttribute('aria-pressed', String(e.tomadoHoy));
+  anillo.setAttribute('aria-label', e.tomadoHoy ? 'Creatina de hoy registrada. Tocar para quitar el registro' : 'Registrar la creatina de hoy');
+  $('estado-hoy').textContent = e.tomadoHoy ? 'Registrada hoy' : 'Pendiente';
+  $('estado-detalle').textContent = e.tomadoHoy
+    ? (e.racha > 1 ? `Llevas ${e.racha} días seguidos` : 'Buen comienzo')
+    : 'Toca el círculo o acerca tu etiqueta NFC';
 
   $('dato-racha').textContent = e.racha;
   $('dato-mejor').textContent = e.mejorRacha;
-  $('dato-cumplimiento').textContent = `${e.cumplimiento}%`;
+  $('dato-cumplimiento').textContent = `${e.cumplimiento} %`;
+  $('barra-cumplimiento').style.width = `${e.cumplimiento}%`;
   $('dato-tomados').textContent = e.tomados;
   $('dato-no-tomados').textContent = e.noTomados;
   $('dato-primera').textContent = e.primera
-    ? fechaDeClave(e.primera).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })
-    : '--';
+    ? fechaDeClave(e.primera).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+
+  dibujarSemana();
   dibujarCalendario();
+}
+
+function dibujarSemana() {
+  $('semana').replaceChildren(...ultimosDias(registros).map((d) => {
+    const el = document.createElement('div');
+    el.className = `dia-semana ${d.estado}${d.esHoy ? ' hoy' : ''}`;
+    el.innerHTML = `<span>${d.inicial}</span><span class="burbuja">${d.dia}</span>`;
+    el.setAttribute('aria-label', `${fechaLarga(d.clave)}: ${d.estado.replace('-', ' ')}`);
+    return el;
+  }));
 }
 
 function dibujarCalendario() {
   const anio = mesVisible.getFullYear();
   const mes = mesVisible.getMonth();
-  const titulo = new Date(anio, mes).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-  $('mes-titulo').textContent = titulo.charAt(0).toUpperCase() + titulo.slice(1);
+  $('mes-titulo').textContent = mayuscula(new Date(anio, mes).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }));
 
   const hoy = new Date();
   $('mes-siguiente').disabled = anio > hoy.getFullYear() || (anio === hoy.getFullYear() && mes >= hoy.getMonth());
@@ -171,12 +234,14 @@ function dibujarCalendario() {
     if (celda.dia) el.textContent = celda.dia;
     if (celda.editable) {
       el.type = 'button';
-      const fecha = fechaDeClave(celda.clave).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
       const tomado = celda.estado === 'tomado';
+      const fecha = fechaLarga(celda.clave);
       el.setAttribute('aria-label', `${fecha}: ${tomado ? 'tomado' : 'no tomado'}`);
-      el.addEventListener('click', () => {
-        const pregunta = tomado ? `¿Marcar el ${fecha} como NO tomado?` : `¿Marcar el ${fecha} como tomado?`;
-        if (celda.esHoy || confirm(pregunta)) marcar(celda.clave, !tomado);
+      el.addEventListener('click', async () => {
+        const ok = await confirmar(mayuscula(fecha),
+          tomado ? 'Este día está registrado como tomado.' : 'Este día no tiene registro.',
+          tomado ? 'Marcar como no tomado' : 'Marcar como tomado', tomado);
+        if (ok) marcar(celda.clave, !tomado);
       });
     }
     contenedor.appendChild(el);
@@ -192,7 +257,7 @@ $('mes-siguiente').addEventListener('click', () => {
   dibujarCalendario();
 });
 
-// Si la página queda abierta pasada la medianoche, "hoy" cambia.
+// Si la app queda abierta pasada la medianoche, "hoy" cambia.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && almacen) actualizar();
 });
@@ -200,20 +265,29 @@ document.addEventListener('visibilitychange', () => {
 // ---------------------------------------------------------------- NFC
 $('btn-nfc').addEventListener('click', async () => {
   if (!('NDEFReader' in window)) {
-    avisar('Tu navegador no puede grabar NFC. Usa Chrome en Android o copia el enlace de abajo.', true);
+    avisar('Este navegador no graba NFC. Copia el enlace', true);
     return;
   }
   try {
     const lector = new window.NDEFReader();
-    avisar('Acerca la etiqueta NFC a la parte trasera del teléfono…');
+    avisar('Acerca la etiqueta al teléfono…');
     await lector.write({ records: [{ recordType: 'url', data: ENLACE_NFC }] });
-    avisar('¡Etiqueta grabada! Acércala al teléfono para registrar tu toma. 🎉');
+    vibrar([20, 60, 20]);
+    avisar('Etiqueta grabada');
   } catch (e) {
     console.error(e);
-    avisar(e.name === 'NotAllowedError' ? 'Se necesita permiso para usar NFC.' : 'No se pudo grabar la etiqueta. Inténtalo de nuevo.', true);
+    avisar(e.name === 'NotAllowedError' ? 'Se necesita permiso para usar NFC' : 'No se pudo grabar la etiqueta', true);
   }
 });
-if (!('NDEFReader' in window)) $('nfc-ayuda').textContent = 'Este navegador no puede grabar etiquetas. Grábales este enlace con una app como NFC Tools (Android o iPhone):';
+
+$('btn-copiar').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(ENLACE_NFC);
+    avisar('Enlace copiado');
+  } catch {
+    window.prompt('Copia este enlace:', ENLACE_NFC);
+  }
+});
 
 // ---------------------------------------------------------------- app instalable
 if ('serviceWorker' in navigator) {

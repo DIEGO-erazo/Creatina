@@ -112,3 +112,22 @@ export function registrosDeEjemplo(hoy = new Date()) {
   }
   return registros;
 }
+
+/** Los últimos `n` días hasta hoy, para la franja de la semana. */
+export function ultimosDias(registros, n = 7, hoy = new Date()) {
+  const claveHoy = claveDeFecha(hoy);
+  const pasadas = [...registros].filter((k) => esClaveValida(k) && k <= claveHoy).sort();
+  const primera = pasadas[0] ?? null;
+  const iniciales = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const dias = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const fecha = sumarDias(hoy, -i);
+    const clave = claveDeFecha(fecha);
+    let estado = 'sin-dato';
+    if (registros.has(clave)) estado = 'tomado';
+    else if (clave === claveHoy) estado = 'pendiente';
+    else if (primera && clave > primera) estado = 'no-tomado';
+    dias.push({ clave, dia: fecha.getDate(), inicial: iniciales[fecha.getDay()], estado, esHoy: clave === claveHoy });
+  }
+  return dias;
+}

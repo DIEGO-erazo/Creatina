@@ -1,5 +1,22 @@
 # Historial de versiones
 
+## [2.1.0] - 2026-11-14
+
+### Cambiado
+- **Rediseño completo con aspecto de app nativa**, tomando como referencia las apps del sistema de iOS, Streaks y Duolingo:
+  - Pantalla de bienvenida con las ventajas de la app y el botón *Continuar con Google*.
+  - Tres pestañas con barra inferior: **Hoy**, **Historial** y **Ajustes**.
+  - Botón circular grande con anillo de progreso animado para registrar el día.
+  - Tarjetas de racha y mejor racha, franja de los últimos 7 días y resumen con barra de cumplimiento.
+  - Modo claro y oscuro según el teléfono, tipografía del sistema y márgenes para la zona segura del iPhone.
+  - Las confirmaciones usan una hoja inferior en lugar de la ventana del navegador.
+  - Iconos propios en SVG y nuevo ícono de la app.
+- Quitar el registro de hoy ahora pide confirmación.
+
+### Añadido
+- Copiar el enlace de la etiqueta NFC con un toque.
+- Vibración al registrar (en teléfonos que la soportan).
+
 ## [2.0.0] - 2026-11-14
 
 ### Añadido

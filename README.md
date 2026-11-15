@@ -10,9 +10,15 @@ Aplicación web para no olvidar la creatina. Pegas una **etiqueta NFC** en el bo
 
 **Pruébala:** https://diego-erazo.github.io/Creatina/ (botón *Probar sin cuenta* para ver el modo demo).
 
-| Inicio | Panel | Registro por NFC |
+| Bienvenida | Hoy | Historial | Ajustes |
+|---|---|---|---|
+| ![Pantalla de bienvenida con inicio de sesión](docs/img/bienvenida-light.png) | ![Pantalla Hoy con el registro del día, rachas y últimos 7 días](docs/img/hoy-light.png) | ![Calendario del historial](docs/img/historial-light.png) | ![Ajustes con la cuenta y la etiqueta NFC](docs/img/ajustes-light.png) |
+
+**Modo oscuro** (sigue el tema del teléfono)
+
+| Pendiente | Registrada | Historial |
 |---|---|---|
-| ![Pantalla de inicio de sesión](docs/img/login.png) | ![Panel con racha, estadísticas y calendario](docs/img/panel.png) | ![Aviso de registro desde la etiqueta NFC](docs/img/nfc.png) |
+| ![Hoy pendiente en modo oscuro](docs/img/pendiente-dark.png) | ![Hoy registrada en modo oscuro](docs/img/hoy-dark.png) | ![Historial en modo oscuro](docs/img/historial-dark.png) |
 
 ## Características
 
@@ -31,12 +37,13 @@ Aplicación web para no olvidar la creatina. Pegas una **etiqueta NFC** en el bo
   - Un *service worker* permite abrir la app sin red.
 - **Instalable (PWA).** Se puede añadir a la pantalla de inicio como una app.
 - **Modo demo** con datos de ejemplo guardados en el navegador, para probarla sin cuenta.
+- **Diseño de app nativa.** Tres pestañas (Hoy, Historial, Ajustes), tarjetas agrupadas, tipografía del sistema, modo claro y oscuro, hojas de confirmación y vibración al registrar. Las referencias fueron las apps del sistema de iOS (Salud y Ajustes), Streaks (Apple Design Award 2016) y la franja de racha de Duolingo.
 
 ## Cómo usarla con una etiqueta NFC
 
 1. Consigue una etiqueta NFC (NTAG213 o similar, son baratas) y pégala en el bote de creatina.
 2. Abre la app en el teléfono e inicia sesión con Google.
-3. Abre **Configurar etiqueta NFC → Grabar etiqueta NFC** y acerca la etiqueta a la parte trasera del teléfono.
+3. Ve a **Ajustes → Grabar etiqueta NFC** y acerca la etiqueta a la parte trasera del teléfono.
    - Si tu teléfono no puede grabar desde el navegador (por ejemplo, un iPhone), copia el enlace que muestra la app y grábalo con una app como NFC Tools.
 4. Desde ese momento, cada vez que tomes tu creatina acerca el teléfono a la etiqueta y listo.
 
@@ -58,7 +65,7 @@ Aplicación web para no olvidar la creatina. Pegas una **etiqueta NFC** en el bo
 
 ```
 index.html              Página única de la app
-css/estilos.css         Estilos (tema oscuro, adaptado a móvil)
+css/estilos.css         Estilos (claro y oscuro, adaptado a móvil y a la zona segura del iPhone)
 js/
   registro.js           Lógica pura: fechas locales, estadísticas, rachas y calendario (sin DOM ni Firebase)
   almacen.js            Dónde se guardan los datos: Firebase o el navegador (modo demo), con la misma interfaz

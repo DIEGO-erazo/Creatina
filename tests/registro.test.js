@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  claveDeFecha, fechaDeClave, esClaveValida, diasEntre, calcularEstadisticas, celdasDelMes, registrosDeEjemplo,
+  claveDeFecha, fechaDeClave, esClaveValida, diasEntre, calcularEstadisticas, celdasDelMes, registrosDeEjemplo, ultimosDias,
 } from '../js/registro.js';
 
 const fecha = (a, m, d, h = 12) => new Date(a, m - 1, d, h);
@@ -90,4 +90,13 @@ test('los datos de ejemplo son coherentes', () => {
   const e = calcularEstadisticas(registrosDeEjemplo(hoy), hoy);
   assert.equal(e.tomados + e.noTomados, 41);
   assert.ok(e.racha >= 1 && e.mejorRacha >= e.racha);
+});
+
+test('franja de la semana: 7 días que terminan hoy', () => {
+  const hoy = fecha(2026, 11, 14); // sábado
+  const dias = ultimosDias(new Set(['2026-11-09', '2026-11-11', '2026-11-12']), 7, hoy);
+  assert.equal(dias.length, 7);
+  assert.deepEqual(dias.map((d) => d.inicial).join(''), 'DLMMJVS');
+  assert.deepEqual(dias.map((d) => d.estado), ['sin-dato', 'tomado', 'no-tomado', 'tomado', 'tomado', 'no-tomado', 'pendiente']);
+  assert.equal(dias[6].esHoy, true);
 });

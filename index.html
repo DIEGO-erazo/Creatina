@@ -2,87 +2,212 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Creatina Diaria · NFC Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Creatina · Registro diario</title>
   <meta name="description" content="Registra tu toma diaria de creatina acercando el teléfono a una etiqueta NFC. Racha, calendario e historial sincronizados con tu cuenta de Google.">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Creatina">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="img/icono.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="img/icono-192.png">
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
-  <main class="tarjeta">
-    <header class="cabecera">
-      <img src="img/icono.svg" alt="" width="44" height="44">
+  <!-- Iconos (se usan con <use href="#i-…">) -->
+  <svg width="0" height="0" class="oculto" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-llama" viewBox="0 0 24 24"><path d="M12 2.5c.6 3.2 4.8 5.3 4.8 10.2a4.8 4.8 0 0 1-9.6 0c0-2 1-3.4 2-4.4.2 1.4.9 2.4 1.9 2.8-.4-3.2.3-6.2.9-8.6z" fill="currentColor"/></symbol>
+    <symbol id="i-trofeo" viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0V4zM7 6H4.5a2.5 2.5 0 0 0 2.6 3.5M17 6h2.5a2.5 2.5 0 0 1-2.6 3.5M12 13v4M8.5 20h7M10 17h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-hoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-nfc" viewBox="0 0 24 24"><path d="M8.5 8.5a5 5 0 0 1 0 7M12 6a8.5 8.5 0 0 1 0 12M15.5 3.5a12 12 0 0 1 0 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="12" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-enlace" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-codigo" viewBox="0 0 24 24"><path d="M8.5 8L4.5 12l4 4M15.5 8l4 4-4 4M13.5 5.5l-3 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-nube" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .4-8A6 6 0 0 0 6.4 9 4.8 4.8 0 0 0 7 18.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-atras" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <!-- ============ Bienvenida / inicio de sesión ============ -->
+  <section id="vista-login" class="bienvenida oculto" aria-labelledby="titulo-bienvenida">
+    <div class="bienvenida-cuerpo">
+      <img class="icono-app" src="img/icono.svg" alt="" width="96" height="96">
+      <h1 id="titulo-bienvenida">Creatina</h1>
+      <p class="bienvenida-lema">Tu toma diaria, con un toque.</p>
+
+      <p class="aviso-nfc oculto" id="aviso-nfc-login">Llegaste desde tu etiqueta NFC. Inicia sesión y la toma de hoy se registra automáticamente.</p>
+
+      <ul class="ventajas">
+        <li>
+          <span class="ventaja-icono verde"><svg><use href="#i-nfc"/></svg></span>
+          <div><strong>Registro con NFC</strong><span>Acerca el teléfono a la etiqueta del bote y listo.</span></div>
+        </li>
+        <li>
+          <span class="ventaja-icono naranja"><svg><use href="#i-llama"/></svg></span>
+          <div><strong>Rachas y estadísticas</strong><span>Mira tu constancia día a día y mes a mes.</span></div>
+        </li>
+        <li>
+          <span class="ventaja-icono azul"><svg><use href="#i-nube"/></svg></span>
+          <div><strong>En todos tus dispositivos</strong><span>Sincronizado con tu cuenta de Google, incluso sin conexión.</span></div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bienvenida-acciones">
+      <button class="boton boton-google" id="btn-login" type="button">
+        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        Continuar con Google
+      </button>
+      <button class="boton-texto" id="btn-demo" type="button">Probar sin cuenta</button>
+      <p class="legal">Tus datos solo los ves tú. © 2026 Diego Erazo</p>
+    </div>
+  </section>
+
+  <!-- ============ Aplicación ============ -->
+  <div id="vista-app" class="app oculto">
+    <header class="encabezado">
       <div>
-        <h1>Creatina Diaria</h1>
-        <p class="sutil" id="fecha-hoy">&nbsp;</p>
+        <p class="encabezado-fecha" id="fecha-hoy">&nbsp;</p>
+        <h1 class="titulo-grande" id="titulo-pestana">Hoy</h1>
       </div>
+      <button class="avatar" id="btn-avatar" type="button" aria-label="Ajustes de la cuenta">
+        <img id="usuario-foto" src="img/icono.svg" alt="" width="36" height="36" referrerpolicy="no-referrer">
+      </button>
     </header>
 
-    <!-- Pantalla de inicio de sesión -->
-    <section id="vista-login" class="oculto" aria-labelledby="titulo-login">
-      <h2 id="titulo-login" class="visualmente-oculto">Iniciar sesión</h2>
-      <p class="aviso-nfc oculto" id="aviso-nfc-login">📲 Llegaste desde tu etiqueta NFC. Inicia sesión y la toma de hoy se registra sola.</p>
-      <p class="sutil">Registra tu creatina con un toque del teléfono y lleva tu racha, calendario e historial en cualquier dispositivo.</p>
-      <button class="boton" id="btn-login" type="button">
-        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
-        Iniciar sesión con Google
-      </button>
-      <button class="boton boton-secundario" id="btn-demo" type="button">Probar sin cuenta (demo)</button>
-    </section>
-
-    <!-- Aplicación -->
-    <section id="vista-app" class="oculto" aria-live="polite">
-      <div class="usuario">
-        <img id="usuario-foto" src="img/icono.svg" alt="" width="28" height="28" referrerpolicy="no-referrer">
-        <span id="usuario-nombre"></span>
-        <span class="etiqueta-demo oculto" id="etiqueta-demo">DEMO</span>
-      </div>
-
-      <div id="estado-hoy" class="estado pendiente" role="status">Cargando…</div>
-      <button class="boton" id="btn-hoy" type="button" disabled>Registrar creatina de hoy</button>
-
-      <div class="estadisticas">
-        <div class="dato"><span class="numero" id="dato-racha">0</span><span class="etiqueta">Racha actual 🔥</span></div>
-        <div class="dato"><span class="numero" id="dato-mejor">0</span><span class="etiqueta">Mejor racha</span></div>
-        <div class="dato"><span class="numero" id="dato-cumplimiento">0%</span><span class="etiqueta">Cumplimiento</span></div>
-        <div class="dato"><span class="numero verde" id="dato-tomados">0</span><span class="etiqueta">Días tomados</span></div>
-        <div class="dato"><span class="numero rojo" id="dato-no-tomados">0</span><span class="etiqueta">Días no tomados</span></div>
-        <div class="dato"><span class="numero" id="dato-primera">--</span><span class="etiqueta">Primera toma</span></div>
-      </div>
-
-      <div class="calendario">
-        <div class="calendario-cabecera">
-          <button type="button" id="mes-anterior" aria-label="Mes anterior">‹</button>
-          <span id="mes-titulo"></span>
-          <button type="button" id="mes-siguiente" aria-label="Mes siguiente">›</button>
+    <main class="contenido">
+      <!-- ---------- Hoy ---------- -->
+      <section class="pestana" id="pestana-hoy" data-titulo="Hoy" aria-label="Hoy">
+        <div class="tarjeta principal">
+          <button class="anillo" id="btn-hoy" type="button" aria-pressed="false" disabled>
+            <svg class="anillo-svg" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="anillo-pista" cx="60" cy="60" r="52"/>
+              <circle class="anillo-progreso" cx="60" cy="60" r="52"/>
+            </svg>
+            <span class="anillo-centro">
+              <svg class="icono-check"><use href="#i-check"/></svg>
+              <svg class="icono-mas"><use href="#i-mas"/></svg>
+            </span>
+          </button>
+          <p class="estado-titulo" id="estado-hoy" role="status">Cargando…</p>
+          <p class="estado-detalle" id="estado-detalle">&nbsp;</p>
         </div>
-        <div class="calendario-dias" id="calendario" role="grid"></div>
-        <p class="leyenda">
-          <span><i class="punto tomado"></i>Tomado</span>
-          <span><i class="punto no-tomado"></i>No tomado</span>
-          <span><i class="punto pendiente"></i>Hoy</span>
-        </p>
-        <p class="sutil pequeno">Toca un día pasado para corregirlo si se te olvidó registrarlo.</p>
-      </div>
 
-      <details class="nfc">
-        <summary>Configurar etiqueta NFC</summary>
-        <p class="sutil">Pega una etiqueta NFC en el bote de creatina. Al acercar el teléfono se abre esta página y la toma del día se registra sola.</p>
-        <button class="boton boton-secundario" id="btn-nfc" type="button">Grabar etiqueta NFC</button>
-        <p class="sutil pequeno" id="nfc-ayuda">Funciona en Chrome para Android. En iPhone u otros navegadores, graba este enlace en la etiqueta con una app como NFC Tools:</p>
-        <code id="enlace-nfc" class="enlace"></code>
-      </details>
+        <div class="metricas">
+          <div class="tarjeta metrica">
+            <span class="metrica-etiqueta naranja"><svg><use href="#i-llama"/></svg>Racha</span>
+            <span class="metrica-valor"><span id="dato-racha">0</span><small> días</small></span>
+          </div>
+          <div class="tarjeta metrica">
+            <span class="metrica-etiqueta amarillo"><svg><use href="#i-trofeo"/></svg>Mejor racha</span>
+            <span class="metrica-valor"><span id="dato-mejor">0</span><small> días</small></span>
+          </div>
+        </div>
 
-      <button class="boton boton-secundario" id="btn-salir" type="button">Cerrar sesión</button>
-    </section>
-  </main>
+        <h2 class="titulo-seccion">Últimos 7 días</h2>
+        <div class="tarjeta semana" id="semana"></div>
+
+        <h2 class="titulo-seccion">Resumen</h2>
+        <div class="tarjeta lista">
+          <div class="fila fila-barra">
+            <span>Cumplimiento</span>
+            <span class="fila-valor" id="dato-cumplimiento">0 %</span>
+            <div class="barra" aria-hidden="true"><span id="barra-cumplimiento"></span></div>
+          </div>
+          <div class="fila"><span>Días tomados</span><span class="fila-valor" id="dato-tomados">0</span></div>
+          <div class="fila"><span>Días no tomados</span><span class="fila-valor" id="dato-no-tomados">0</span></div>
+          <div class="fila"><span>Primera toma</span><span class="fila-valor" id="dato-primera">—</span></div>
+        </div>
+      </section>
+
+      <!-- ---------- Historial ---------- -->
+      <section class="pestana oculto" id="pestana-historial" data-titulo="Historial" aria-label="Historial">
+        <div class="tarjeta calendario">
+          <div class="calendario-cabecera">
+            <span id="mes-titulo"></span>
+            <div class="calendario-nav">
+              <button type="button" id="mes-anterior" aria-label="Mes anterior"><svg><use href="#i-atras"/></svg></button>
+              <button type="button" id="mes-siguiente" aria-label="Mes siguiente"><svg><use href="#i-flecha"/></svg></button>
+            </div>
+          </div>
+          <div class="calendario-dias" id="calendario"></div>
+          <div class="leyenda">
+            <span><i class="punto tomado"></i>Tomado</span>
+            <span><i class="punto no-tomado"></i>No tomado</span>
+            <span><i class="punto pendiente"></i>Hoy</span>
+          </div>
+        </div>
+        <p class="nota">Toca un día para corregirlo si se te olvidó registrarlo.</p>
+      </section>
+
+      <!-- ---------- Ajustes ---------- -->
+      <section class="pestana oculto" id="pestana-ajustes" data-titulo="Ajustes" aria-label="Ajustes">
+        <div class="tarjeta lista">
+          <div class="fila cuenta">
+            <img id="cuenta-foto" src="img/icono.svg" alt="" width="52" height="52" referrerpolicy="no-referrer">
+            <div class="cuenta-datos">
+              <strong id="usuario-nombre"></strong>
+              <span id="usuario-detalle">Cuenta de Google</span>
+            </div>
+            <span class="insignia oculto" id="etiqueta-demo">DEMO</span>
+          </div>
+        </div>
+
+        <h2 class="titulo-seccion">Etiqueta NFC</h2>
+        <div class="tarjeta lista">
+          <button class="fila fila-boton" id="btn-nfc" type="button">
+            <span class="fila-icono verde"><svg><use href="#i-nfc"/></svg></span>
+            <span>Grabar etiqueta NFC</span>
+            <svg class="chevron"><use href="#i-flecha"/></svg>
+          </button>
+          <button class="fila fila-boton" id="btn-copiar" type="button">
+            <span class="fila-icono azul"><svg><use href="#i-enlace"/></svg></span>
+            <span>Copiar enlace de la etiqueta</span>
+            <svg class="chevron"><use href="#i-flecha"/></svg>
+          </button>
+        </div>
+        <p class="nota" id="nfc-ayuda">Pega una etiqueta NFC en el bote. Al acercar el teléfono se abre la app y la toma del día se registra sola. Grabar desde aquí funciona en Chrome para Android; en iPhone, copia el enlace y grábalo con una app como NFC Tools.</p>
+
+        <h2 class="titulo-seccion">Acerca de</h2>
+        <div class="tarjeta lista">
+          <div class="fila"><span>Versión</span><span class="fila-valor">2.1</span></div>
+          <a class="fila fila-boton" href="https://github.com/DIEGO-erazo/Creatina" target="_blank" rel="noopener">
+            <span class="fila-icono gris"><svg><use href="#i-codigo"/></svg></span>
+            <span>Código fuente</span>
+            <svg class="chevron"><use href="#i-flecha"/></svg>
+          </a>
+        </div>
+
+        <div class="tarjeta lista">
+          <button class="fila fila-boton peligro" id="btn-salir" type="button">Cerrar sesión</button>
+        </div>
+        <p class="nota centrada">© 2026 Diego Erazo</p>
+      </section>
+    </main>
+
+    <nav class="barra-pestanas" aria-label="Secciones">
+      <button type="button" class="pestana-boton activa" data-pestana="hoy" aria-current="page"><svg><use href="#i-hoy"/></svg><span>Hoy</span></button>
+      <button type="button" class="pestana-boton" data-pestana="historial"><svg><use href="#i-calendario"/></svg><span>Historial</span></button>
+      <button type="button" class="pestana-boton" data-pestana="ajustes"><svg><use href="#i-ajustes"/></svg><span>Ajustes</span></button>
+    </nav>
+  </div>
+
+  <!-- Hoja de confirmación -->
+  <dialog class="hoja" id="hoja">
+    <form method="dialog">
+      <p class="hoja-titulo" id="hoja-titulo"></p>
+      <p class="hoja-texto" id="hoja-texto"></p>
+      <button class="boton" value="si" id="hoja-si">Confirmar</button>
+      <button class="boton boton-gris" value="no">Cancelar</button>
+    </form>
+  </dialog>
 
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
-
-  <footer class="pie">© 2026 Diego Erazo · <a href="https://github.com/DIEGO-erazo/Creatina">Código en GitHub</a></footer>
 
   <script type="module" src="js/app.js"></script>
 </body>
