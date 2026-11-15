@@ -3,7 +3,7 @@
 // La seguridad la ponen las reglas de Firestore (firestore.rules) y los dominios
 // autorizados en Firebase Authentication.
 export const firebaseConfig = {
-  apiKey: 'AIzaSyAcVPsoEnDZq36Que9wq8AroGKTDKeC5g8',
+  apiKey: 'AIzaSyAcVPsoEnDZq36Que9wq8AroGKTDKyC5g8',
   authDomain: 'control-creatina.firebaseapp.com',
   projectId: 'control-creatina',
   storageBucket: 'control-creatina.firebasestorage.app',
