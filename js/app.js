@@ -116,7 +116,7 @@ $('btn-login').addEventListener('click', async () => {
     await iniciarSesion();
   } catch (e) {
     console.error(e);
-    avisar(e.code === 'auth/unauthorized-domain' ? 'Dominio no autorizado en Firebase' : 'No se pudo iniciar sesión', true);
+    avisar(e.code === 'auth/unauthorized-domain' ? 'Dominio no autorizado en Firebase' : `No se pudo iniciar sesión (${e.code || e.message})`, true);
   }
 });
 

@@ -1,7 +1,7 @@
 // Service worker: guarda la app para que abra rápido y sin internet.
 // Las páginas se piden primero a la red (para recibir siempre la última versión);
 // el resto de archivos sale de la caché y se actualiza en segundo plano.
-const VERSION = 'creatina-v2.1.1';
+const VERSION = 'creatina-v2.1.2';
 const ARCHIVOS = [
   './', './index.html', './css/estilos.css',
   './js/app.js', './js/almacen.js', './js/registro.js', './js/firebase-config.js',
@@ -9,7 +9,7 @@ const ARCHIVOS = [
 ];
 
 self.addEventListener('install', (evento) => {
-  evento.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(ARCHIVOS)).then(() => self.skipWaiting()));
+  evento.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(ARCHIVOS.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (evento) => {
